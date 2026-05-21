@@ -24,6 +24,40 @@ Clean Git-backed source for the `hatch-pet` / `hatch-clawmate` Codex skill.
 
 Use this repository as the single source of truth, then install local skill entries as junctions or symlinks that point back to the repo.
 
+### Agent install prompt
+
+Copy and paste this into Codex or another local coding agent:
+
+```text
+Install the `hatch-clawmate-skill` repository as the single source of truth for the local `hatch-pet` / `hatch-clawmate` skill.
+
+Repository:
+- git@github.com:JacobTheJacobs/hatch-clawmate-skill.git
+
+Target repo path:
+- $HOME\Documents\Playground\hatch-clawmate-skill-clean
+
+Install requirements:
+- Clone or update the repo at the target path.
+- Remove any old installed copies at:
+  - $HOME\.agents\skills\hatch-clawmate
+  - $HOME\.agents\skills\hatch-pet
+  - $HOME\.codex\skills\hatch-clawmate
+  - $HOME\.codex\skills\hatch-pet
+- Reinstall only as junctions or symlinks pointing to the repo path.
+- Verify that both names, `hatch-pet` and `hatch-clawmate`, resolve to the same repo in both `.agents\skills` and `.codex\skills`.
+
+Behavior requirements:
+- Normal pet generation uses Codex-auth Image Gen first.
+- `OPENAI_API_KEY` is optional and only for the external OpenAI Images API fallback.
+- Do not ask for `OPENAI_API_KEY` during normal Codex-auth runs.
+
+After installation, report:
+- the final repo path
+- the git branch and commit
+- the installed junction/symlink targets
+```
+
 ### PowerShell install
 
 ```powershell
