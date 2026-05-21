@@ -1,8 +1,11 @@
 # hatch-clawmate-skill
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE.txt)
-[![Branch: master](https://img.shields.io/badge/branch-master-black.svg)](../../tree/master)
-[![Skill: hatch-pet](https://img.shields.io/badge/codex-skill-green.svg)](./SKILL.md)
+[![Codex Skill](https://img.shields.io/badge/codex-skill-hatch--pet-green.svg)](./SKILL.md)
+[![GitHub Repo](https://img.shields.io/badge/github-JacobTheJacobs%2Fhatch--clawmate--skill-black.svg)](https://github.com/JacobTheJacobs/hatch-clawmate-skill)
+[![GitHub Stars](https://img.shields.io/github/stars/JacobTheJacobs/hatch-clawmate-skill?style=flat)](https://github.com/JacobTheJacobs/hatch-clawmate-skill/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/JacobTheJacobs/hatch-clawmate-skill?style=flat)](https://github.com/JacobTheJacobs/hatch-clawmate-skill/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/JacobTheJacobs/hatch-clawmate-skill?style=flat)](https://github.com/JacobTheJacobs/hatch-clawmate-skill/commits/master)
 
 Clean Git-backed source for the `hatch-pet` / `hatch-clawmate` Codex skill.
 
@@ -23,6 +26,22 @@ Clean Git-backed source for the `hatch-pet` / `hatch-clawmate` Codex skill.
 ## Install
 
 Use this repository as the single source of truth, then install local skill entries as junctions or symlinks that point back to the repo.
+
+### Requirements
+
+- Codex installed and logged in (`codex login`)
+- Git installed
+- On Windows: prefer junctions (no admin required)
+- On macOS/Linux: prefer symlinks
+
+### Choose an install location
+
+Recommended repo location (matches the examples below):
+
+- Windows: `%USERPROFILE%\Documents\Playground\hatch-clawmate-skill-clean`
+- macOS/Linux: `~/Documents/Playground/hatch-clawmate-skill-clean`
+
+If you keep repos elsewhere, just update `$repo` / `$REPO` in the commands.
 
 ### Agent install prompt
 
@@ -58,32 +77,56 @@ After installation, report:
 - the installed junction/symlink targets
 ```
 
-### PowerShell install
+### Windows (PowerShell)
+
+This creates 4 junctions so both skill names resolve to the same repo in both Codex and Agents.
 
 ```powershell
 git clone git@github.com:JacobTheJacobs/hatch-clawmate-skill.git `
   "$HOME\Documents\Playground\hatch-clawmate-skill-clean"
 
 $repo = "$HOME\Documents\Playground\hatch-clawmate-skill-clean"
-$targets = @(
-  "$HOME\.agents\skills\hatch-clawmate",
-  "$HOME\.agents\skills\hatch-pet",
-  "$HOME\.codex\skills\hatch-clawmate",
-  "$HOME\.codex\skills\hatch-pet"
-)
+$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { "$HOME\.codex" }
+$targets = @("$HOME\.agents\skills", "$codexHome\skills")
+$names = @("hatch-clawmate","hatch-pet")
 
-foreach ($target in $targets) {
-  if (Test-Path -LiteralPath $target) {
-    Remove-Item -LiteralPath $target -Recurse -Force
+foreach ($root in $targets) {
+  foreach ($name in $names) {
+    $target = Join-Path $root $name
+    if (Test-Path -LiteralPath $target) {
+      Remove-Item -LiteralPath $target -Recurse -Force
+    }
+    New-Item -ItemType Junction -Path $target -Target $repo | Out-Null
   }
-  New-Item -ItemType Junction -Path $target -Target $repo | Out-Null
 }
 ```
 
-### Verify install
+### macOS/Linux (bash)
+
+This creates 4 symlinks so both skill names resolve to the same repo in both Codex and Agents.
+
+```bash
+git clone git@github.com:JacobTheJacobs/hatch-clawmate-skill.git \
+  "$HOME/Documents/Playground/hatch-clawmate-skill-clean"
+
+REPO="$HOME/Documents/Playground/hatch-clawmate-skill-clean"
+CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+
+mkdir -p "$HOME/.agents/skills" "$CODEX_HOME/skills"
+
+for root in "$HOME/.agents/skills" "$CODEX_HOME/skills"; do
+  for name in hatch-clawmate hatch-pet; do
+    rm -rf "$root/$name"
+    ln -s "$REPO" "$root/$name"
+  done
+done
+```
+
+### Verify install (Windows PowerShell)
 
 ```powershell
-Get-ChildItem "$HOME\.agents\skills","$HOME\.codex\skills" |
+$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { "$HOME\.codex" }
+Get-ChildItem "$HOME\.agents\skills","$codexHome\skills" |
   Where-Object { $_.Name -match "hatch|clawmate" } |
   Select-Object Name, LinkType, Target
 ```
@@ -96,6 +139,12 @@ Pull the repo, then keep the existing junction installs in place:
 
 ```powershell
 git -C "$HOME\Documents\Playground\hatch-clawmate-skill-clean" pull --ff-only
+```
+
+On macOS/Linux:
+
+```bash
+git -C "$HOME/Documents/Playground/hatch-clawmate-skill-clean" pull --ff-only
 ```
 
 If you previously installed loose copies instead of links, remove them and rerun the install block above.
