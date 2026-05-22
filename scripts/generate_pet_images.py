@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -189,6 +190,65 @@ def latest_generated_image() -> Path | None:
     return max(images, key=lambda p: p.stat().st_mtime)
 
 
+def compact_codex_imagegen_prompt(spec_text: str, prompt_file: Path) -> str:
+    state = prompt_file.stem
+    visual_state = {
+        "system": "process-attention",
+        "run-tool": "tool-use",
+        "web-fetch": "retrieval",
+        "web-search": "searching",
+        "write-to-file": "saving",
+        "read-file": "reading",
+        "vibe": "personality-flourish",
+    }.get(state, state)
+    frame_match = re.search(r"Output exactly\s+(\d+)\s+separate animation frames", spec_text)
+    frames = frame_match.group(1) if frame_match else "the requested number of"
+    action_match = re.search(r"Animation action:\s*(.+?)(?:\n\n|\Z)", spec_text, re.S)
+    action = " ".join(action_match.group(1).split()) if action_match else state.replace("-", " ")
+    action = (
+        action.replace("system-state", "process")
+        .replace("run-tool", "tool-use")
+        .replace("web-fetch", "retrieval")
+        .replace("web-search", "search")
+        .replace("write-to-file", "saving")
+        .replace("read-file", "reading")
+        .replace("never smoking", "no detached smoke effects")
+        .replace("smoking", "smoke effects")
+    )
+
+    return (
+        "Use the built-in image generation tool (`image_gen`) to generate EXACTLY ONE image.\n"
+        "Create a single horizontal sprite strip for a Codex digital pet.\n"
+        f"Animation label: {visual_state}. Frames: exactly {frames}, arranged left-to-right in one row.\n"
+        f"Action: {action}.\n"
+        "Use the attached layout guide only for frame count, spacing, centering, and safe padding.\n"
+        "Use the attached base/canonical image as the exact identity reference.\n"
+        "Generate a wide horizontal strip, not a square character sheet. Spread poses across the full width. "
+        "The first and last frame slots must each contain a complete visible pet pose.\n"
+        "Pet identity: tiny cute bat-hero mascot, black cowl with short ears, black cape, "
+        "gray suit, yellow belt, big friendly eyes, chibi proportions.\n"
+        "Style: pixel-art-adjacent Codex pet sprite, thick dark outline, flat cel shading, "
+        "limited palette, crisp readable silhouette, tiny limbs.\n"
+        "Background: perfectly flat pure magenta #FF00FF chroma-key across the whole strip.\n"
+        "Rules: no text, labels, visible grids, guide marks, scenery, shadows, glows, blur, "
+        "motion trails, detached effects, or extra props. Do not copy visible guide lines. "
+        "Each frame must contain one complete full-body pose and preserve the same identity.\n"
+        "Do not answer in text. Produce only the generated image.\n"
+    )
+
+
+def full_codex_imagegen_prompt(spec_text: str) -> str:
+    return (
+        "Use the built-in image generation tool (`image_gen`) to generate EXACTLY ONE image.\n"
+        "Do not run shell commands. Do not write files. Do not browse the web.\n"
+        "Do not output explanations; your only goal is to produce one generated image.\n"
+        "Follow the specification below exactly.\n\n"
+        "=== SPEC START ===\n"
+        f"{spec_text}\n"
+        "=== SPEC END ===\n"
+    )
+
+
 def run_codex_imagegen(
     *,
     run_dir: Path,
@@ -206,11 +266,19 @@ def run_codex_imagegen(
     External OpenAI Images API is *not* used here; see the main loop fallback logic.
     """
 
-    def _run_codex_exec(extra_flags: list[str]) -> Path:
+    def _run_codex_exec(extra_flags: list[str], prompt_variants: list[str]) -> Path:
+        codex_executable = (
+            os.environ.get("CODEX_EXECUTABLE")
+            or shutil.which("codex.cmd")
+            or shutil.which("codex.exe")
+            or shutil.which("codex")
+            or "codex"
+        )
         before = latest_generated_image()
-        prompt_text = prompt_file.read_text(encoding="utf-8").strip()
+        spec_text = prompt_file.read_text(encoding="utf-8").strip()
+        compact_instruction = compact_codex_imagegen_prompt(spec_text, prompt_file)
         command = [
-            "codex",
+            codex_executable,
             "exec",
             "--skip-git-repo-check",
             "--color",
@@ -221,55 +289,92 @@ def run_codex_imagegen(
         ]
         for image_path in image_paths:
             command.extend(["--image", str(image_path)])
-        result = subprocess.run(
-            command,
-            input=prompt_text,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-        )
-        if result.returncode != 0:
-            print("codex exec failed")
-            print("command:", subprocess.list2cmdline(command))
-            if result.stderr:
-                print("stderr:")
-                print(result.stderr.rstrip())
-            if result.stdout:
-                print("stdout:")
-                print(result.stdout.rstrip())
-            raise RuntimeError(f"codex exec exit code {result.returncode}")
 
-        generated_root = Path.home() / ".codex" / "generated_images"
-        candidates = [
-            path
-            for path in generated_root.rglob("ig_*.png")
-            if path.is_file() and path.stat().st_mtime >= newest_only_after
-        ]
-        if before is not None:
-            candidates = [path for path in candidates if path != before]
-        if not candidates:
-            raise RuntimeError("codex image_gen did not produce a new ig_*.png output")
-        return max(candidates, key=lambda path: path.stat().st_mtime)
+        last_stdout = ""
+        last_stderr = ""
+        for prompt_text in prompt_variants:
+            result = subprocess.run(
+                command,
+                input=prompt_text,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+            )
+            last_stdout = (result.stdout or "").rstrip()
+            last_stderr = (result.stderr or "").rstrip()
+            if result.returncode != 0:
+                print("codex exec failed")
+                print("command:", subprocess.list2cmdline(command))
+                if last_stderr:
+                    print("stderr:")
+                    print(last_stderr)
+                if last_stdout:
+                    print("stdout:")
+                    print(last_stdout)
+                raise RuntimeError(f"codex exec exit code {result.returncode}")
+
+            generated_root = Path.home() / ".codex" / "generated_images"
+            candidates = [
+                path
+                for path in generated_root.rglob("ig_*.png")
+                if path.is_file() and path.stat().st_mtime >= newest_only_after
+            ]
+            if before is not None:
+                candidates = [path for path in candidates if path != before]
+            if candidates:
+                return max(candidates, key=lambda path: path.stat().st_mtime)
+
+        raise RuntimeError(
+            "codex image_gen did not produce a new ig_*.png output "
+            f"after retries. stdout={last_stdout!r} stderr={last_stderr!r}"
+        )
 
     # 1) Normal Codex-auth path first.
     try:
-        return _run_codex_exec([])
+        spec_text = prompt_file.read_text(encoding="utf-8").strip()
+        first_prompts = [compact_codex_imagegen_prompt(spec_text, prompt_file)]
+        if prompt_file.stem in {"running-right", "running-left"}:
+            first_prompts = [full_codex_imagegen_prompt(spec_text), *first_prompts]
+        return _run_codex_exec(
+            [
+                "--ignore-user-config",
+                "--ignore-rules",
+            ],
+            first_prompts,
+        )
     except Exception as first_error:  # noqa: BLE001
-        # 2) Retry with bypass flags.
+        # 2) Retry with normal user config and the full prompt, then compact prompt.
         try:
+            spec_text = prompt_file.read_text(encoding="utf-8").strip()
+            full_prompt = full_codex_imagegen_prompt(spec_text)
+            compact_prompt = compact_codex_imagegen_prompt(spec_text, prompt_file)
             return _run_codex_exec(
+                [],
                 [
-                    "--dangerously-bypass-approvals-and-sandbox",
-                    "--ignore-user-config",
-                    "--ignore-rules",
-                ]
+                    full_prompt,
+                    "IMPORTANT: You MUST call `image_gen` now. Do not answer in text.\n\n"
+                    + compact_prompt,
+                    compact_prompt,
+                ],
             )
         except Exception as second_error:  # noqa: BLE001
-            raise RuntimeError(
-                f"Codex-auth image generation failed (normal + bypass). "
-                f"normal_error={first_error!s}; bypass_error={second_error!s}"
-            ) from second_error
+            # 3) Last Codex-auth retry with bypass flags.
+            try:
+                return _run_codex_exec(
+                    [
+                        "--dangerously-bypass-approvals-and-sandbox",
+                        "--ignore-user-config",
+                        "--ignore-rules",
+                    ],
+                    [compact_codex_imagegen_prompt(prompt_file.read_text(encoding="utf-8").strip(), prompt_file)],
+                )
+            except Exception as third_error:  # noqa: BLE001
+                raise RuntimeError(
+                    f"Codex-auth image generation failed (isolated + normal + bypass). "
+                    f"isolated_error={first_error!s}; normal_error={second_error!s}; "
+                    f"bypass_error={third_error!s}"
+                ) from third_error
 
 
 def file_sha256(path: Path) -> str:
