@@ -1,8 +1,10 @@
 # hatch-clawmate-skill
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE.txt)
-[![Codex Skill](https://img.shields.io/badge/codex-skill-hatch--clawmate-green.svg)](./SKILL.md)
-[![GitHub Repo](https://img.shields.io/badge/github-JacobTheJacobs%2Fhatch--clawmate--skill-black.svg)](https://github.com/JacobTheJacobs/hatch-clawmate-skill)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE.txt)
+[![Branch: master](https://img.shields.io/badge/branch-master-black.svg)](../../tree/master)
+[![Skill: hatch-pet](https://img.shields.io/badge/codex-skill-green.svg)](./SKILL.md)
+<img width="1983" height="793" alt="Image" src="https://github.com/user-attachments/assets/f4482ac1-111c-4440-af3b-ce6d4762c149" />
+
 
 Official source repository for the `hatch-clawmate` Codex skill.
 
