@@ -1,9 +1,9 @@
 ---
-name: hatch-pet
+name: hatch-clawmate
 description: Create, repair, validate, preview, and package Codex-compatible animated pet spritesheets from character art, screenshots, generated images, or visual references. Use when a user wants to hatch a Codex pet, create a custom animated pet, or build a built-in pet asset with an 8x22 atlas, transparent unused cells, row-by-row animation prompts, QA contact sheets, preview videos, and pet.json packaging. This skill composes the installed $imagegen system skill for visual generation and uses bundled scripts for deterministic spritesheet assembly.
 ---
 
-# Hatch Pet
+# Hatch Clawmate
 
 ## Overview
 
@@ -129,7 +129,7 @@ Only mark a step complete when the real file, image, or decision exists. If this
 1. Prepare a pet run folder and imagegen job manifest:
 
 ```bash
-SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/hatch-pet"
+SKILL_DIR="${CODEX_HOME:-$HOME/.codex}/skills/hatch-clawmate"
 python "$SKILL_DIR/scripts/prepare_pet_run.py" \
   --pet-name "<Name>" \
   --description "<one sentence>" \
@@ -252,7 +252,7 @@ Subagent handoff contract:
 Use this template for each subagent:
 
 ```text
-Generate the `<row-id>` row for this hatch-pet run.
+Generate the `<row-id>` row for this hatch-clawmate run.
 
 Run dir: <absolute run dir>
 Prompt file: <absolute prompt file>

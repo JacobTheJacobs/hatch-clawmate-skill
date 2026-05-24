@@ -272,7 +272,7 @@ def infer_pet_notes(args: argparse.Namespace, reference_paths: list[Path]) -> st
 
 def default_output_dir(pet_id: str) -> Path:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    return Path.cwd() / "output" / "hatch-pet" / f"{pet_id}-{timestamp}"
+    return Path.cwd() / "output" / "hatch-clawmate" / f"{pet_id}-{timestamp}"
 
 
 def rel(path: Path, root: Path) -> str:
