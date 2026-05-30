@@ -5,8 +5,6 @@
 [![Skill: hatch-pet](https://img.shields.io/badge/codex-skill-green.svg)](./SKILL.md)
 <img width="1983" height="793" alt="Image" src="https://github.com/user-attachments/assets/f4482ac1-111c-4440-af3b-ce6d4762c149" />
 
-`hatch-clawmate` creates Codex-compatible animated pet spritesheets from a text idea or image reference.
-
 ## What This Is
 
 - A Codex skill you can install locally.
