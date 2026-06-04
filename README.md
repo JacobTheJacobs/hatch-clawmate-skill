@@ -13,6 +13,8 @@
   <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft" width="200" />
 </a>
 
+[<img src="https://img.shields.io/badge/Microsoft%20Store-ClawMate-0078D4?style=flat-square&logo=microsoft&logoColor=white" alt="ClawMate on Microsoft Store" />](https://apps.microsoft.com/detail/9NJH9X9KDG5P?hl=en-us&gl=IL&ocid=pdpshare)
+
 ## What This Is
 
 - A Codex skill you can install locally.
