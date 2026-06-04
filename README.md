@@ -3,9 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE.txt)
 [![Branch: master](https://img.shields.io/badge/branch-master-black.svg)](../../tree/master)
 [![Skill: hatch-pet](https://img.shields.io/badge/codex-skill-green.svg)](./SKILL.md)
-<img width="1983" height="793" alt="Image" src="https://github.com/user-attachments/assets/f4482ac1-111c-4440-af3b-ce6d4762c149" />
+
+![ClawMate hero animation](./assets/readme/clawmate-hero.gif)
+![ClawMate mascot reflection](./assets/readme/mascot-reflection.png)
 
 `hatch-clawmate` creates Codex-compatible animated pet spritesheets from a text idea or image reference.
+
+[<img src="https://img.shields.io/badge/Microsoft%20Store-Download%20ClawMate-0078D4?style=for-the-badge&logo=microsoft&logoColor=white" alt="Download ClawMate from Microsoft Store" />](https://apps.microsoft.com/detail/9NJH9X9KDG5P?hl=en-us&gl=IL&ocid=pdpshare)
 
 ## What This Is
 
