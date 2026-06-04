@@ -10,8 +10,7 @@
 `hatch-clawmate` creates Codex-compatible animated pet spritesheets from a text idea or image reference.
 
 <a href="https://apps.microsoft.com/detail/9NJH9X9KDG5P?hl=en-us&gl=IL&ocid=pdpshare">
-  <img src="./assets/readme/microsoft-store-logo.png" alt="Microsoft Store" width="44" />
-  <img src="https://img.shields.io/badge/Download-ClawMate-0078D4?style=for-the-badge&logoColor=white" alt="Download ClawMate from Microsoft Store" />
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft" width="200" />
 </a>
 
 ## What This Is
